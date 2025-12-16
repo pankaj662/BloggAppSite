@@ -27,7 +27,9 @@ public class BlogeWebBackendApplication //implements CommandLineRunner
 	
 	public static void main(String[] args) {
 		
-		Dotenv dotenv=Dotenv.load();
+		Dotenv dotenv=Dotenv.configure()
+				            .ignoreIfMissing()
+				            .load();
 		System.setProperty("JWT_SECRET", dotenv.get("JWT_SECRET"));
 		System.setProperty("REFRESH_SECRET", dotenv.get("REFRESH_SECRET"));
 		System.setProperty("DB_PASSWORD", dotenv.get("DB_PASSWORD"));
