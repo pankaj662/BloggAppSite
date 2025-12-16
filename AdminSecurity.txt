@@ -1,0 +1,12 @@
+COMPLETE SUMMARY (1 LINE VERSION OF EACH POINT)
+Step	Description
+1	Admin IP allow-list → only trusted IPs allowed
+2	Brute-force protection → block repeated login attempts
+3	Only users with ADMIN role can access admin APIs
+4	Log every admin action (audit trail)
+5	Optional OTP for high-risk admin actions
+6	Admin-only URLs under /api/admin/**
+7	Honeypot + robots.txt to stop bots scanning admin panel
+8	Optional device binding / trusted device system
+9	Rate-limit admin endpoints heavily
+10	Force HTTPS for admin access

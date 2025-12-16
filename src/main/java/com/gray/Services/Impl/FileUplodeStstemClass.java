@@ -6,13 +6,16 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.gray.Entity.Post;
 import com.gray.Exceptions.EmptyException;
+import com.gray.Exceptions.IllegalArgumentException;
 import com.gray.Exceptions.ResourcesNotFoundException;
 import com.gray.Repositories.PostsRepositorie;
 
@@ -68,12 +71,23 @@ public class FileUplodeStstemClass {
 			}
 
 			String name = file.getOriginalFilename();
-
-			String fullPath = path + File.separator + name;
+			String extention=FilenameUtils.getExtension(name);
+			if(!extention.equals("jpg")&&!extention.equals("png"))
+			{
+				throw new IllegalArgumentException("Onlay jpg/png allowed");
+			}
+			if(file.getSize()>2 * 1024 * 1024)
+			{
+				throw new IllegalArgumentException("File To large image/2MB");
+			}
+			
+			String newName=UUID.randomUUID().toString()+"."+extention;
+			
+			String fullPath = path + File.separator + newName;
 
 			Files.copy(file.getInputStream(), Paths.get(fullPath));
 
-			imageName.add(name);
+			imageName.add(newName);
 		}
 
 		return String.join(",", imageName);
@@ -93,12 +107,25 @@ public class FileUplodeStstemClass {
 		}
 
 		String fileName = file.getOriginalFilename();
+		String extention=FilenameUtils.getExtension(fileName);
+		
+		if(!extention.equals("jpg")&&!extention.equals("png"))
+		{
+			throw new IllegalArgumentException("Onlay jpg/png allowed");
+		}
+		
+		if(file.getSize()>2 *1024 *1024)
+		{
+			throw new IllegalArgumentException("File to large /1 image= 2MB");
+		}
 
-		String fullPath = path + File.separator + fileName;
+		String newName=UUID.randomUUID().toString()+"."+extention;
+		
+		String fullPath = path + File.separator + newName;
 
 		Files.copy(file.getInputStream(), Paths.get(fullPath));
 
-		return fileName;
+		return newName;
 
 	}
 }

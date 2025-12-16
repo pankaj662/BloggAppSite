@@ -1,7 +1,5 @@
 package com.gray.Config;
 
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -11,16 +9,14 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import com.gray.Repositories.UserRepositorie;
 @Configuration
 public class ApplicationConfing {
 
-	@Autowired
-	private UserRepositorie userRepositorie;
-	
-	@Autowired
-	private ModelMapper mapper;
+//	@Autowired
+//	private UserRepositorie userRepositorie;
+//	
+//	@Autowired
+//	private ModelMapper mapper;
 //	@Bean
 //	public UserDetailsService userDetailsService()
 //	{
@@ -30,7 +26,7 @@ public class ApplicationConfing {
 	
 	@SuppressWarnings("deprecation")
 	@Bean
-	public AuthenticationProvider authenticationProvider(UserDetailsService userDetails,PasswordEncoder passwordEncoder)
+	AuthenticationProvider authenticationProvider(UserDetailsService userDetails,PasswordEncoder passwordEncoder)
 	{
 		DaoAuthenticationProvider daoAuthenticationProvider=new DaoAuthenticationProvider();
 		daoAuthenticationProvider.setUserDetailsService(userDetails);
@@ -39,13 +35,12 @@ public class ApplicationConfing {
 		
 	}
 	@Bean
-	public PasswordEncoder passwordEncoder()
+	 PasswordEncoder passwordEncoder()
 	{
 		return new BCryptPasswordEncoder();
 	}
-	
 	@Bean
-	public AuthenticationManager manager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+	 AuthenticationManager manager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
 		
 		return authenticationConfiguration.getAuthenticationManager();
 	}

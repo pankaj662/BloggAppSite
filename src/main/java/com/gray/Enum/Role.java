@@ -1,11 +1,23 @@
 package com.gray.Enum;
 
-import static com.gray.Enum.Permission.*;
+import static com.gray.Enum.Permission.ADMIN_CREATE;
+import static com.gray.Enum.Permission.ADMIN_DELETE;
+import static com.gray.Enum.Permission.ADMIN_READ;
+import static com.gray.Enum.Permission.ADMIN_UPDATE;
+import static com.gray.Enum.Permission.MANEGER_CREATE;
+import static com.gray.Enum.Permission.MANEGER_DELETE;
+import static com.gray.Enum.Permission.MANEGER_READ;
+import static com.gray.Enum.Permission.MANEGER_UPDATE;
+import static com.gray.Enum.Permission.USER_CREATE;
+import static com.gray.Enum.Permission.USER_DELETE;
+import static com.gray.Enum.Permission.USER_READ;
+import static com.gray.Enum.Permission.USER_UPDATE;
+import static com.gray.Enum.Permission.VIEWER_READ;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import lombok.Getter;
@@ -16,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum Role {
 
-	USER(Set.of(USER_UPDATE)),
+	USER(Set.of(USER_UPDATE,USER_CREATE,USER_READ)),
 	
 	ADMIN(Set.of(ADMIN_READ,ADMIN_CREATE,ADMIN_UPDATE,ADMIN_DELETE,
 			     MANEGER_READ,MANEGER_CREATE,MANEGER_UPDATE,MANEGER_DELETE,

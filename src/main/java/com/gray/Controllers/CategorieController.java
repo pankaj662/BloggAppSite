@@ -26,7 +26,7 @@ import com.gray.Services.CategorieService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping("/api/v1/maneger/categorie")
+@RequestMapping("/api/v1/veri-fied/blogg-app/maneger/categorie")
 @Tag(name = "Categorie Manegment",description = "This apis use manege categoris")
 @PreAuthorize("hasAnyRole('ADMIN','MANEGER')")
 public class CategorieController {

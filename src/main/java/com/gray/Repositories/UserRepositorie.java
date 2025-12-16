@@ -1,5 +1,9 @@
 package com.gray.Repositories;
 
+import java.time.LocalDateTime;
+//import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -9,10 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.gray.Entity.User;
 import com.gray.Enum.Role;
-
-import java.time.LocalDateTime;
-//import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface UserRepositorie extends JpaRepository<User, Integer>{
@@ -29,6 +29,11 @@ void updateLastLogin(@Param("email") String email,@Param("time") LocalDateTime t
 @Transactional
 @Query("UPDATE User u SET u.jwtTokenVersion=:jwtTokenVersion WHERE u.email=:email")
 void updateJwtTokenVersion(@Param("email") String email ,@Param("jwtTokenVersion") double jwtTokenVersion);
+
+@Modifying
+@Transactional
+@Query("UPDATE User u SET u.parmanentBlock=:responce WHERE u.id=:id")
+void userProfileBlocked(@Param("id") int id,@Param("parmanentBlock") boolean responce);
 
 @Modifying
 @Transactional

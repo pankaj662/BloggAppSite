@@ -1,0 +1,129 @@
+Perfect! Chaliye main Spring Boot me Rate Limiting + IP Blocking ka working example simple diagram aur code ke saath samjhata hoon. Ye example aapke API security ke liye use ho sakta hai.
+
+1️⃣ Idea / Flow
+Client (IP)  --->  Request  --->  Filter (Rate Limiting + IP Blocking)
+                                      |
+                                      |---> If blocked IP → 403 Forbidden
+                                      |---> If over limit → 429 Too Many Requests
+                                      |---> Else → Request reaches Controller
+
+
+Step 1: Client request bhejta hai
+
+Step 2: Filter check karta hai IP blacklist me hai ya nahi
+
+Step 3: Filter check karta hai request limit exceed hui ya nahi
+
+Step 4: Agar sab thik → request Controller me jaata hai
+
+2️⃣ Maven Dependency (Bucket4j for Rate Limiting)
+<dependency>
+    <groupId>com.github.vladimir-bukhtoyarov</groupId>
+    <artifactId>bucket4j-core</artifactId>
+    <version>8.1.0</version>
+</dependency>
+
+3️⃣ IP Blocking + Rate Limiting Filter
+import java.io.IOException;
+import java.time.Duration;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
+
+@Component
+public class SecurityFilter extends OncePerRequestFilter {
+
+    // IPs jo block hai
+    private static final Set<String> BLOCKED_IPS = Set.of(
+        "192.168.1.100", "10.0.0.5"
+    );
+
+    // Rate Limiting storage
+    private final Map<String, Bucket> ipBuckets = new ConcurrentHashMap<>();
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
+
+        String ip = request.getRemoteAddr();
+
+        // 1️⃣ Check if IP blocked
+        if (BLOCKED_IPS.contains(ip)) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().write("Your IP is blocked");
+            return;
+        }
+
+        // 2️⃣ Check Rate Limit
+        Bucket bucket = ipBuckets.computeIfAbsent(ip, this::newBucket);
+        if (bucket.tryConsume(1)) {
+            filterChain.doFilter(request, response); // Allow request
+        } else {
+            response.setStatus(429);
+            response.getWriter().write("Too Many Requests");
+        }
+    }
+
+    // New Bucket for Rate Limiting (100 requests per minute)
+    private Bucket newBucket(String ip) {
+        Bandwidth limit = Bandwidth.simple(100, Duration.ofMinutes(1));
+        return Bucket.builder().addLimit(limit).build();
+    }
+}
+
+
+✅ Features:
+
+IP blocking: Known malicious IPs access nahi kar payenge
+
+Rate limiting: Har IP max 100 requests per minute
+
+Thread-safe & ready for production
+
+4️⃣ Controller Example
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class TestController {
+
+    @GetMapping("/api/test")
+    public String testApi() {
+        return "Request Successful!";
+    }
+}
+
+
+Agar IP allowed hai aur limit exceed nahi hui → Request Successful!
+
+Agar over limit → 429 Too Many Requests
+
+Agar blocked IP → 403 Forbidden
+
+5️⃣ Diagram Summary
+Client (IP)
+   |
+   v
++-------------------------+
+| SecurityFilter          |
+|-------------------------|
+| 1. Check IP Block       | --> 403 if blocked
+| 2. Check Rate Limit     | --> 429 if exceeded
+| 3. Pass request         | --> Controller
++-------------------------+
+   |
+   v
+Controller (/api/test)

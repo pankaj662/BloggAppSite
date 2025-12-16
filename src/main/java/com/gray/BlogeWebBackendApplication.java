@@ -9,12 +9,13 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.EnableAsync;
 
+import io.github.cdimascio.dotenv.Dotenv;
+
 @EnableAsync
 @EnableCaching
 @EnableRetry
 @SpringBootApplication
 @EnableJpaAuditing(auditorAwareRef = "auditorAware")
-//implements CommandLineRunner
 public class BlogeWebBackendApplication //implements CommandLineRunner
 {
 //	@Autowired
@@ -25,6 +26,12 @@ public class BlogeWebBackendApplication //implements CommandLineRunner
 	
 	
 	public static void main(String[] args) {
+		
+		Dotenv dotenv=Dotenv.load();
+		System.setProperty("JWT_SECRET", dotenv.get("JWT_SECRET"));
+		System.setProperty("REFRESH_SECRET", dotenv.get("REFRESH_SECRET"));
+		System.setProperty("DB_PASSWORD", dotenv.get("DB_PASSWORD"));
+		
 		SpringApplication.run(BlogeWebBackendApplication.class, args);
 	}
 

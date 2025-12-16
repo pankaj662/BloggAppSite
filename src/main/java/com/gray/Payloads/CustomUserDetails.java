@@ -12,6 +12,7 @@ import jakarta.persistence.Enumerated;
 
 public class CustomUserDetails implements UserDetails
 {
+	private int id;
 	private String email;
 	private String password;
 	
@@ -22,8 +23,9 @@ public class CustomUserDetails implements UserDetails
 	
 	private boolean active;
 	
-	public CustomUserDetails(String email, String password,Role roles, double jwtTokenVerion,boolean active) {
+	public CustomUserDetails(int id,String email, String password,Role roles, double jwtTokenVerion,boolean active) {
 		super();
+		this.id=id;
 		this.email = email;
 		this.password = password;
 		this.roles = roles;
@@ -42,6 +44,10 @@ public class CustomUserDetails implements UserDetails
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		// TODO Auto-generated method stub
 		return roles.getAuthorities();
+	}
+	public int getId()
+	{
+		return this.id;
 	}
 
 	@Override

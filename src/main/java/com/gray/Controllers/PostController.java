@@ -2,25 +2,26 @@ package com.gray.Controllers;
 
 import java.util.List;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.Cacheable;
 
 import com.gray.Config.AppConstants;
+import com.gray.Config.SenitizerUtils;
 import com.gray.Exceptions.EmptyException;
 import com.gray.Extra.AdvanceValidation;
 import com.gray.Extra.BasicValidation;
@@ -29,21 +30,18 @@ import com.gray.Payloads.ApiResponse;
 import com.gray.Payloads.PostDto;
 import com.gray.Payloads.PostResponce;
 import com.gray.Services.PostService;
-import com.gray.Services.Impl.FileUplodeStstemClass;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-
-
 @RestController
 @Tag(name = "Post Managment",description = "This apis using maneging post")
-@RequestMapping("/api/v1/user")
+@RequestMapping("/api/v1/veri-fied/blogg-app/user")
 public class PostController {
 	@Autowired
 	private PostService postService;
-	
+
 	@Autowired
-	private FileUplodeStstemClass uplodeSystem;
+	private SenitizerUtils senitizer;
 
 	@Value("${project.image}")
 	private String path;
@@ -54,14 +52,14 @@ public class PostController {
 			@Validated({BasicValidation.class,BasicValidation.class, AdvanceValidation.class,
 					NextLevleValidation.class })
 			@PathVariable Integer userId, @PathVariable Integer categorieId,
-			@RequestParam("image") MultipartFile[] files,
-			@RequestParam("title") String title,
-			@RequestParam("content") String content) 
+			@RequestParam("images") MultipartFile[] files,
+			@RequestParam("titles") String title,
+			@RequestParam("contents") String content) 
 	        throws Exception {
 		   
 		PostDto postDto=new PostDto();
-		postDto.setTitle(title);
-		postDto.setContent(content);
+		postDto.setTitle(senitizer.clean(title));
+		postDto.setContent(senitizer.clean(content));
 		PostDto post = this.postService.addPost(postDto, userId, categorieId,path,files);
 		return new ResponseEntity<PostDto>(post, HttpStatus.CREATED);
 
@@ -82,8 +80,8 @@ public class PostController {
 	@PreAuthorize("hasAnyAuthority('ADMIN_READ','MANEGER_READ')")
 	@GetMapping("/getPost/byUser/{userId}")
 	public ResponseEntity<PostResponce> getPostByUser(@PathVariable Integer userId,
-			                                           @RequestParam(value = "pageNumber",defaultValue =AppConstants.PAGE_NUMBER,required = false) Integer pageNumber,
-			                                           @RequestParam(value = "pageSize",defaultValue = AppConstants.PAGE_SIZE,required = false) Integer pageSize,
+			                                           @RequestParam(value = "pageNumbers",defaultValue =AppConstants.PAGE_NUMBER,required = false) Integer pageNumber,
+			                                           @RequestParam(value = "pageSizes",defaultValue = AppConstants.PAGE_SIZE,required = false) Integer pageSize,
 			                                           @RequestParam(value = "ancOrder",defaultValue = AppConstants.PAGE_DIR,required = false) String dsnOrder,
 			                                           @RequestParam(value = "sortDir",defaultValue = AppConstants.PAGE_SHORT,required = false) String sortDirectry )
 	{
@@ -93,11 +91,11 @@ public class PostController {
 	
 	@PreAuthorize("hasAnyAuthority('ADMIN_READ','MANEGER_READ','USER_READ')")
 	@GetMapping("/getPosts/allPosts")
-	@Cacheable(value = "posts")
-	public ResponseEntity<PostResponce> getAllPosts(@RequestParam(value = "pageNumber",defaultValue =AppConstants.PAGE_NUMBER,required = false) Integer pageNumber,
-			                                        @RequestParam(value = "pageSize",defaultValue = AppConstants.PAGE_SIZE,required = false) Integer pageSize,
-			                                        @RequestParam(value = "pageSortA",defaultValue = AppConstants.PAGE_SHORT,required = false) String pageSortA,
-	                                                @RequestParam(value = "pageSortDir",defaultValue =AppConstants.PAGE_DIR,required = false) String pageSortDir)
+	//@Cacheable(value = "posts")
+	public ResponseEntity<PostResponce> getAllPosts(@RequestParam(value = "pageNumbers",defaultValue =AppConstants.PAGE_NUMBER,required = false) Integer pageNumber,
+			                                        @RequestParam(value = "pageSizes",defaultValue = AppConstants.PAGE_SIZE,required = false) Integer pageSize,
+			                                        @RequestParam(value = "pageSortAs",defaultValue = AppConstants.PAGE_SHORT,required = false) String pageSortA,
+	                                                @RequestParam(value = "pageSortDirs",defaultValue =AppConstants.PAGE_DIR,required = false) String pageSortDir)
 	{
 		PostResponce list=this.postService.getAllPost(pageNumber,pageSize,pageSortA,pageSortDir);
 		return new ResponseEntity<PostResponce>(list,HttpStatus.FOUND);
@@ -113,11 +111,16 @@ public class PostController {
 	}
 	
 	@PreAuthorize("hasAnyAuthority('ADMIN_UPDATE','MANEGER_UPDATE','USER_UPDATE')")
-	@PutMapping("/updatePost/byId/{postId}")
+	@PatchMapping("/updatePost/byId/{postId}")
 	public ResponseEntity<PostDto> updatePost(@Validated({BasicValidation.class,AdvanceValidation.class,NextLevleValidation.class})
-	                                          @RequestBody PostDto postDto,
+	                                          @RequestParam("image") MultipartFile[] files,
+	                                          @RequestParam("titles") String title,
+	                                          @RequestParam("contents") String content,
 	                                          @PathVariable Integer postId)
 	{
+		PostDto postDto=new PostDto();
+		postDto.setTitle(senitizer.clean(title));
+		postDto.setContent(senitizer.clean(content));
 		PostDto postDto2=this.postService.updatePost(postDto, postId);
 		return new ResponseEntity<PostDto>(postDto2,HttpStatus.UPGRADE_REQUIRED);
 	}

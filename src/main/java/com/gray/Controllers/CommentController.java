@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.gray.Config.SenitizerUtils;
 import com.gray.Payloads.ApiResponse;
 import com.gray.Payloads.CommentDto;
 import com.gray.Services.CommentService;
@@ -19,7 +20,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/v1/user")
+@RequestMapping("/api/v1/veri-fied/blogg-app/user")
 @Tag(name = "Comment Manegment",description = "This apis use manage comments")
 public class CommentController
 {
@@ -27,6 +28,8 @@ public class CommentController
 	@Autowired
 	private CommentService commentService;
 	
+	@Autowired
+	private SenitizerUtils senitize;
 	
 	@PostMapping("/Comment/post/{postId}/user/{userId}")
 	@PreAuthorize("hasAnyAuthority('ADMIN_CREATE','USER_CREATE','MANEGER_CREATE')")
@@ -34,6 +37,7 @@ public class CommentController
 			                                                   @RequestBody CommentDto commentDto,
 			                                                   @PathVariable Integer postId,
 	                                                           @PathVariable Integer userId){
+		commentDto.setContent(senitize.clean(commentDto.getContent()));
 		CommentDto dto=this.commentService.addComment(commentDto, postId, userId);
 		return new ResponseEntity<CommentDto>(dto,HttpStatus.CREATED);
 	}

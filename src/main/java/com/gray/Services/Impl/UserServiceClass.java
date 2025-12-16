@@ -1,6 +1,5 @@
 package com.gray.Services.Impl;
 
-import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -9,7 +8,6 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -225,7 +223,6 @@ public class UserServiceClass implements UserService {
 		log.debug("Email checking in databases email exist or Not");
 		return this.userRepositorie.findByEmail(email).isPresent();
 	}
-
 	@Override
 	public UserDto newUserRegister(UserDto userDto) {
 		User user = this.userDtoToUser(userDto);

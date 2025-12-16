@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,7 +26,6 @@ import com.gray.Extra.BasicValidation;
 import com.gray.Extra.NextLevleValidation;
 import com.gray.Payloads.ApiResponse;
 import com.gray.Payloads.UserDto;
-import com.gray.Repositories.UserRepositorie;
 import com.gray.Services.BlockSystemService;
 import com.gray.Services.UserService;
 
@@ -38,7 +36,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping("/api/v1/user")
+@RequestMapping("/api/v1/veri-fied/blogg-app/user")
 @Tag(name = "User Managment",description = "Apis for managing User")
 //@Tag(name = "User Managment", description = "Apis for managing User")
 //@SecurityRequirement(name = "bearerAuth")

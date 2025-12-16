@@ -1,0 +1,6 @@
+1️⃣ Attacker ko slow karna
+2️⃣ Attacker ko honeypot me bhejna
+3️⃣ Attacker ka connection hang karna
+4️⃣ Attacker ko heavy JSON dena
+5️⃣ Attacker ke IP ko auto block karna
+6️⃣ Attacker ka browser freeze karna (possible)

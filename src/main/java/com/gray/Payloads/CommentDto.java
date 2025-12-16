@@ -12,10 +12,9 @@ import lombok.Setter;
 @NoArgsConstructor
 public class CommentDto
 {
-private int id;
+    //private int id;
 	
 	@NotBlank(message = "content is required")
 	private String content;
 	
-	private UserDto user;
 }

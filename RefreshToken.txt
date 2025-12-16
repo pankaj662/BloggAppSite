@@ -1,0 +1,402 @@
+बहुत बढ़िया प्रश्न — और बिल्कुल सही चिंता। अगर किसी, किसी ने refresh token चुरा लिया तो attacker लंबे समय तक नए access tokens ले सकता है, इसलिए refresh-token theft को रोकना और मिले तो fast response होना ज़रूरी है। नीचे पूरे practical, लागू करने योग्य उपाय दिए हैं — क्यों, क्या और कैसे — साथ में Spring Boot में implement करने के लिए code patterns भी हैं।
+
+1) Risk क्या है (Sanity)
+
+यदि refresh token लंबा समय valid रहे और attacker के पास है → वह बार-बार /refresh-token पर नया access token ले सकता है और आपकी APIs access कर सकता है।
+
+इसलिए refresh tokens को चोरी होने से रोकना और चोरी detect होते ही revoke करना ज़रूरी है।
+
+2) Prevention (पहले रोको) — Best Practices
+A. Store refresh token securely on client
+
+Never store refresh token in localStorage (XSS से vulnerable)।
+
+Use HttpOnly, Secure, SameSite cookie:
+
+Set-Cookie: refreshToken=<token>; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=604800
+
+
+HttpOnly → JS से नहीं पढ़ा जा सकता (XSS से बचाव)
+
+Secure → केवल HTTPS पर चलेगा
+
+SameSite=Strict/Lax → CSRF risk कम होता है
+
+B. Use HTTPS everywhere
+
+Transport level encryption mandatory (no plain HTTP).
+
+C. Shorter lifetime + rotation
+
+Refresh token को बिल्कुल बहुत लंबा न रखो। उदाहरण: 7–30 दिनों के बजाय 7 days या less।
+
+Implement refresh token rotation (नीचे detail)।
+
+D. Bind token to device / fingerprint
+
+Save device info (user-agent hash, IP last seen) with refresh token on server — verify mismatch.
+
+E. Store refresh token server-side (or store hashed token)
+
+Store token (या token identifier) in DB/Redis tied to user & device.
+
+Prefer storing hash(token) in DB (जैसे password hashing) — ताकि DB leak पर tokens usable न हों.
+
+3) Detection & Response (अगर leak हुआ तो क्या करें)
+A. Rotation + Reuse detection (recommended)
+
+जब client hits /refresh-token:
+
+Server validates the presented refresh token (match hashed token in DB).
+
+If valid → issue new access token AND a new refresh token, invalidate (delete) the old refresh token record.
+
+If a request arrives presenting an old refresh token (that was already rotated/inactivated) → treat as token theft: revoke all refresh tokens for that user/device and force logout (require password re-login). Notify user / security team.
+
+यह approach attacker को रोकता है क्योंकि attacker, जो पुराना token रखेगा, उसे reuse करने पर detect हो जाएगा और सभी sessions revoke हो जायेंगे।
+
+B. Immediate actions on suspicious activity
+
+Revoke (delete) all refresh tokens for that user.
+
+Invalidate active sessions.
+
+Force password reset if necessary.
+
+Notify user by email/SMS.
+
+4) Implementation (Spring Boot) — practical recipe
+
+नीचे एक practical design pattern है: server-stored refresh tokens with rotation + reuse detection.
+
+DB table (SQL)
+CREATE TABLE refresh_tokens (
+  id BIGSERIAL PRIMARY KEY,
+  jti VARCHAR(128) UNIQUE NOT NULL,      -- token id (store hashed)
+  user_id BIGINT NOT NULL,
+  device_info VARCHAR(512),
+  created_at TIMESTAMP DEFAULT now(),
+  expires_at TIMESTAMP,
+  revoked BOOLEAN DEFAULT false
+);
+
+
+हम jti (JWT ID) या token value का secure hash store करेंगे।
+
+When issuing refresh token
+
+Create random token value (cryptographically secure), or use JWT with jti claim.
+
+Store hash(token) and metadata in refresh_tokens.
+
+Send raw token to client in HttpOnly cookie.
+
+Hashing token (example)
+import java.security.MessageDigest;
+import java.util.Base64;
+
+public String hash(String token) {
+    MessageDigest md = MessageDigest.getInstance("SHA-256");
+    byte[] digest = md.digest(token.getBytes(StandardCharsets.UTF_8));
+    return Base64.getEncoder().encodeToString(digest);
+}
+
+
+(Use SHA-256; okay for token hashing. For extra safety, HMAC with server secret is fine.)
+
+Service pseudo-code (rotate + reuse detection)
+public class RefreshTokenService {
+
+    @Autowired
+    RefreshTokenRepository repo;
+
+    public RefreshResponse refresh(String presentedToken, String deviceInfo) {
+        String tokenHash = hash(presentedToken);
+        Optional<RefreshToken> dbTokenOpt = repo.findByJti(tokenHash);
+
+        if (!dbTokenOpt.isPresent()) {
+            // token not found -> possible theft or expired -> take safe action
+            handlePossibleTokenReuse(deviceInfo);
+            throw new UnauthorizedException("Invalid refresh token");
+        }
+
+        RefreshToken dbToken = dbTokenOpt.get();
+
+        if (dbToken.isRevoked() || dbToken.getExpiresAt().isBefore(now())) {
+            // token was already used/invalidated -> token reuse => compromise
+            revokeAllForUser(dbToken.getUserId());
+            throw new UnauthorizedException("Refresh token reuse detected");
+        }
+
+        // valid: rotate
+        // mark old as revoked
+        dbToken.setRevoked(true);
+        repo.save(dbToken);
+
+        // create new refresh token
+        String newRawToken = generateSecureRandomToken();
+        String newHash = hash(newRawToken);
+        RefreshToken newDbToken = new RefreshToken(newHash, dbToken.getUserId(), deviceInfo, now(), now().plusDays(7), false);
+        repo.save(newDbToken);
+
+        // generate new access token using user details
+        String newAccessToken = jwtService.generateTokenForUserId(dbToken.getUserId());
+
+        // return raw newRawToken to client (set HttpOnly cookie), and access token in body
+        return new RefreshResponse(newAccessToken, newRawToken);
+    }
+
+    private void handlePossibleTokenReuse(String deviceInfo) {
+        // log, alert, and maybe revoke all tokens for sessions from the same user (if you can find user)
+    }
+    
+    private void revokeAllForUser(Long userId) {
+        repo.revokeAllByUserId(userId);
+    }
+}
+
+Controller endpoint
+@PostMapping("/refresh-token")
+public ResponseEntity<?> refreshToken(@CookieValue(name = "refreshToken", required = false) String refreshToken,
+                                      HttpServletResponse response) {
+    if (refreshToken == null) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+    RefreshResponse resp = refreshTokenService.refresh(refreshToken, extractDeviceInfo());
+    // set new cookie:
+    ResponseCookie cookie = ResponseCookie.from("refreshToken", resp.getNewRefreshToken())
+        .httpOnly(true).secure(true).path("/").maxAge(Duration.ofDays(7)).sameSite("Strict").build();
+    response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+    return ResponseEntity.ok(Map.of("accessToken", resp.getAccessToken()));
+}
+
+5) Additional practical safeguards
+1. Token rotation + reuse detection = MUST
+
+Without rotation, server cannot detect theft except by other heuristics. Rotation gives deterministic detection.
+
+2. Store token hash, not token
+
+If DB leaks, raw tokens aren't there.
+
+3. Device binding
+
+When issuing token, save device fingerprint (user-agent + IP hash). If refresh request comes from different fingerprint, flag it.
+
+4. Logout / revoke on password change
+
+On logout, delete the specific refresh token record (or revoke). On password reset, revoke all refresh tokens for user.
+
+5. Rate-limit refresh endpoint
+
+Prevent brute force on refresh token values.
+
+6. Monitor suspicious patterns
+
+Multiple different refresh tokens used for same user in quick succession → indicate compromise.
+
+7. Use short-lived refresh tokens + sliding window
+
+Optionally use sliding expiry: each rotation extends expires_at.
+
+6) If token is stolen — immediate steps (operational)
+
+Revoke all refresh tokens for affected user(s).
+
+Invalidate active sessions (if you keep session records).
+
+Force password reset if needed.
+
+Notify user and security team.
+
+Review logs to see scope of abuse.
+
+7) TL;DR — Recommended Setup (practical checklist)
+
+ Keep access tokens short (minutes).
+
+ Use HttpOnly Secure SameSite cookies for refresh tokens.
+
+ Store hashed refresh token in DB with metadata (user, device, expires, revoked).
+
+ Implement refresh token rotation (issue new, revoke old).
+
+ Detect reuse of rotated tokens → revoke all sessions for user.
+
+ On suspicious activity, revoke tokens and notify user.
+
+ Rate-limit refresh endpoint + use HTTPS.
+
+ Optionally: bind token to device fingerprint.
+
+
+
+
+
+
+
+
+
+====================================================================================================================================================================
+
+
+    1. Token/Session Hardening
+
+Access Token Short Life
+
+Access tokens को short-lived रखें (5–15 मिनट) ताकि leak होने पर नुकसान कम हो।
+
+Refresh token से access token regenerate हो।
+
+Refresh Token Rotation & Reuse Detection
+
+जैसे पिछले answer में बताया — refresh token rotate करें और old token reuse detect करें।
+
+Bind Tokens to Device / IP
+
+Token issue करते समय device fingerprint/IP save करें।
+
+Refresh या sensitive operations में mismatch → reject.
+
+Immediate Revocation on Sensitive Events
+
+Password change, logout, suspicious login → revoke all refresh tokens.
+
+Blacklist Compromised Tokens
+
+Redis/DB में blacklist for invalidated tokens, especially for JWT if long-lived.
+
+              2. API & Endpoint Security
+
+Rate Limiting
+
+Brute-force और DoS attacks रोकने के लिए rate-limit login, refresh-token, sensitive endpoints।
+
+Spring: Bucket4j, resilience4j-ratelimiter।
+
+IP & Geo Restrictions (Optional)
+
+Critical operations जैसे admin login या fund transfer के लिए geo/IP restrictions।
+
+CSRF Protection
+
+Stateless JWT APIs के लिए जरूरी नहीं, लेकिन यदि browser cookies में JWT/refresh token store है → enable CSRF.
+
+CORS & Content Security Policy (CSP)
+
+Browser API access सीमित करें।
+
+CSP headers set करें ताकि XSS attack से token leak कम हो।
+
+HttpOnly + Secure + SameSite cookies
+
+Refresh token हमेशा HttpOnly + Secure + SameSite रखें।
+
+                        3. Application Hardening
+
+Strong Password Policies
+
+Minimum length, uppercase/lowercase, numbers, symbols।
+
+Bcrypt/Argon2 password hashing.
+
+Account Lockout & Monitoring
+
+Failed login attempts → temporary lockout।
+
+Audit & Logging
+
+Sensitive operations logging (login/logout/token refresh).
+
+Logs maintain but do not log raw passwords or tokens.
+
+Two-Factor Authentication (2FA)
+
+Optional but strong layer for admin or high-risk users.
+
+Security Headers
+
+X-Frame-Options: DENY
+
+X-XSS-Protection: 1; mode=block
+
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+                        4. Monitoring & Alerting
+
+Detect Abnormal Behavior
+
+Multiple refresh requests in short time → possible token theft.
+
+Multiple login failures → possible brute-force.
+
+User Notification
+
+Notify user on new device login, password change, or suspicious activity.
+
+Integrate SIEM / Security Logs
+
+For enterprise apps → log to ELK/Splunk or similar for anomaly detection.
+
+                         5. Data Protection
+
+Encrypt Sensitive Data
+
+At rest (DB columns like SSN, credit card).
+
+In transit → HTTPS mandatory.
+
+Use Environment Variables for Secrets
+
+JWT secret, DB password, API keys → never hardcode.
+ 
+                   6. Code & Dependency Hygiene
+
+Update Dependencies Regularly
+
+Spring Boot, Spring Security, JWT libraries up-to-date.
+
+Input Validation
+
+Prevent SQL Injection, XSS, Command Injection.
+
+Use @PreAuthorize / @PostAuthorize
+
+Method-level security for fine-grained control.
+
+Principle of Least Privilege
+
+Roles and permissions carefully assigned.
+
+Avoid admin privilege for normal users.
+
+                      7. Optional Advanced Security Features
+
+Token Introspection / JTI
+
+Track JWT ID (jti) in DB to revoke single JWT anytime.
+
+Device Logout / Session Management
+
+Let user see and revoke active sessions/devices.
+
+Adaptive Authentication
+
+Risk-based login: extra verification if new device/IP detected.
+
+                   💡 Summary (Practical Next Steps for You)
+
+Implement refresh token rotation (already discussed).
+
+Store refresh token server-side with hash, bind to device/IP.
+
+Enable rate-limiting, CSRF, security headers.
+
+Add login monitoring + user notifications.
+
+Use HTTPS + HttpOnly cookies.
+
+Keep access token short-lived, refresh token reasonably long but revocable.
+
+Audit & log suspicious activity.

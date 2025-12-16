@@ -1,37 +1,36 @@
 package com.gray.security;
 
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+
+import javax.crypto.SecretKey;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import com.gray.Payloads.CustomUserDetails;
+
+import io.github.cdimascio.dotenv.Dotenv;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
-
-import com.gray.Payloads.CustomUserDetails;
-
-import javax.crypto.SecretKey;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 @Component
 public class JWTHelper {
 
     // 30 minutes validity (as in your createToken)
 	//30 * 60 * 1000L
-    private static final long JWT_TOKEN_VALIDITY = 5 * 60 * 1000L;
-
-    // Use a secure, random 256-bit key in production (not hardcoded)
-    
+    private static final long JWT_TOKEN_VALIDITY = 15 * 60 * 1000L;
     @Value("${jwt.secretKey}")
     private String SECRET;
  
+    @Value("${jwt.refreshSecret}")
+    private String REFRASH_SECRET;
+    
     public double extractTokenversion(String token)
     {
     	return extractClaims(token,claims->claims.get("jwtTokenVersion",Double.class) );
@@ -98,17 +97,38 @@ public class JWTHelper {
 		      claims.put("role", roles);
 		  double jwtVersion=userDetails.getJwtTokenVersion();
 		   claims.put("jwtTokenVersion", jwtVersion);
+		   claims.put("userId",userDetails.getId());
 		return Jwts.builder()
 				   .claims(claims)
 				   .subject(userDetails.getUsername())
 				   .issuedAt(new Date(System.currentTimeMillis()))
-				   .expiration(new Date(System.currentTimeMillis()+1000*60*60*24))
+				   .expiration(new Date(System.currentTimeMillis()+JWT_TOKEN_VALIDITY))
 				   .signWith(signingKey(),Jwts.SIG.HS256)
 				   .compact();
 	}
-
 	
-    
+//	public String refrashToken(CustomUserDetails userDetails)
+//	{
+//		return refrashToken( new HashMap<>(), userDetails);
+//	}
+//
+//	private String refrashToken(Map<String, Object> claims,CustomUserDetails userDetails)
+//	{
+//		return Jwts.builder()
+//				   .claims(claims)
+//				   .subject(userDetails.getUsername())
+//				   .issuedAt(new Date(System.currentTimeMillis()))
+//				   .expiration(new Date(System.currentTimeMillis()+7*60*60*1000L))
+//				   .signWith(refrashSigningKey(),Jwts.SIG.HS256)
+//				   .compact();
+//	}
+//	
+//	private SecretKey refrashSigningKey()
+//	{
+//		byte [] key=Decoders.BASE64.decode(REFRASH_SECRET);
+//		return Keys.hmacShaKeyFor(key);
+//	}
+//    
     
 //
 //    private static final SecretKey SIGNING_KEY = Keys.hmacShaKeyFor(

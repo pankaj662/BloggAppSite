@@ -22,7 +22,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     		   ()->new ResourcesNotFoundExceptionwithString("User", "Email", username)
     		   );
        
-       return new CustomUserDetails(user.getEmail(), user.getPassword(), user.getRoles(), user.getJwtTokenVersion(),user.isActive());
+       return new CustomUserDetails(user.getId(),user.getEmail(), user.getPassword(), user.getRoles(), user.getJwtTokenVersion(),user.isActive());
 	}
 
 }

@@ -1,0 +1,42 @@
+
+
+
+           1. Refresh token system(JWT auto renewal)
+
+
+             2.CORS Configuration (Frontend Integretion Security)
+              
+                 3.HTTPS(SSL/TLS Certificate Setup) 
+
+
+                   4. Security Header (Browser Hardening)
+
+
+
+                    5.Rate Limiting/Ip Blocking 
+
+
+                      6. JWT secret secure
+
+
+                       7.Audit Logging
+
+
+
+
+
+
+
+                                       Summary Table:
+Feature	                                  Purpose	                            Difficulty	        Priority
+✅ JWT + Roles	                      Authentication                            	⭐⭐⭐	         ✅ Done
+🔁 Refresh Token                      Auto re-login	                                 ⭐⭐	         🔥 Must add
+🌍 CORS Config	                     Frontend access	                              ⭐	         ✅ Must
+🔐 HTTPS	                     Network Security                                  	      ⭐⭐        	 Must for Prod
+🧱 Security Headers	             XSS, Clickjackin                                     ⭐	         Recommended
+⚠️ Global Exception                  Info Leak रोकना	                                  ⭐	         ✅ Must
+🚫 Rate Limiting	              DDoS Protection	                                 ⭐⭐	         Recommended
+🧩 Secret Storage	             JWT Security                                      	  ⭐	         Must
+📜 Audit Logs                 	     Monitoring                                   	 ⭐⭐	         Optional but Good
+
+                     

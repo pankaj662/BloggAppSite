@@ -1,18 +1,14 @@
 package com.gray.Config;
-
 import java.util.Optional;
 
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.AuditorAware;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import com.gray.Entity.User;
 import com.gray.Enum.Role;
-import com.gray.Exceptions.ResourcesNotFoundExceptionwithString;
-import com.gray.Repositories.UserRepositorie;
 import com.gray.Utils.UserContextHolder;
 
 
@@ -22,11 +18,7 @@ public class SpringSecurityAuditorAware implements AuditorAware<String> {
 
 	@Autowired
 	private UserContextHolder userContextHolder;
-	
-	@Autowired
-	private UserRepositorie userRepositorie;
-	
-	
+		
 	@Override
 	public Optional<String> getCurrentAuditor() {
 		Authentication auth=SecurityContextHolder.getContext().getAuthentication();

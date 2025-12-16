@@ -1,0 +1,13 @@
+type UserDto {
+  id: Int!
+  name: String!
+  email: String!
+  password: String!
+  about: String!
+  image: String!
+}
+
+type Query {
+  getUserById(id: Int!): UserDto
+  getAllUser:[UserDto]
+}

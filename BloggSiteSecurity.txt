@@ -1,0 +1,329 @@
+	🔥 1. Overview
+
+News websites are highly sensitive platforms that face bot attacks, spam attacks, content scraping, DDoS attacks, and admin-focused hacking attempts.
+This document defines the complete security architecture for a Spring Boot–based News Website.
+
+🔥 2. Authentication Security
+✔ 2.1 Login & User Types
+
+Admin → Full control
+
+Editor → Publish/Edit news
+
+Author → Write news only
+
+User/Reader → View only
+
+✔ 2.2 Authentication Methods
+
+JWT Token
+
+Session-supported if needed
+
+Password hashing (BCrypt)
+
+Login attempt rate limiting
+
+🔥 3. Authorization Security
+✔ Role-Based Access Controls
+Role	Add News	Edit News	Delete News	Publish News	Comment
+Admin	✔	✔	✔	✔	✔
+Editor	✔	✔	✖	✔	✔
+Author	✔	✖	✖	✖	✔
+User	✖	✖	✖	✖	✔
+🔥 4. Content Security
+✔ 4.1 Anti-XSS (Very important)
+
+News pe comments hoti hain → XSS ka high risk.
+
+Protect by:
+
+Encode all user comments
+
+HTML sanitization (remove scripts)
+
+Do not trust user input
+
+✔ 4.2 Anti-HTML Injection
+
+Prevent:
+
+Hidden script insertion
+
+SEO-link injection
+
+✔ 4.3 Image Upload Security
+
+Admins upload news images, so secure:
+
+Only JPEG/PNG
+
+Max 2MB
+
+Rename file
+
+Store outside /static
+
+🔥 5. IP Security & Rate Limiting
+✔ 5.1 Rate Limiting (News Sites MUST)
+
+Per-IP rate limiting
+
+Prevent bots scraping news
+
+Prevent DDoS attacks
+
+Protect:
+
+/login
+
+/api/news
+
+/comments
+
+✔ 5.2 IP Blocking
+
+Block automatically:
+
+Excessive requests
+
+3 temp blocks → permanent block (your existing requirement)
+
+✔ 5.3 Country-based filtering (Optional)
+
+Block countries that send bot traffic.
+
+🔥 6. Anti-Scraping Protection
+
+News sites me sabse bada attack:
+👉 bots article scrape karte hain
+👉 aapka data copy hota hai
+👉 SEO rank girta hai
+
+So protect by:
+
+✔ 6.1 Rate Limit per User Agent
+
+Block bots like:
+
+Python Requests
+
+Postman
+
+Scrapy
+
+Curl
+
+✔ 6.2 Block common scraper headers
+✔ 6.3 Honeypot Links (fake URLs for bots)
+
+Bot click kare → IP block.
+
+✔ 6.4 Delay for heavy endpoints
+
+Mostly /news/latest.
+
+🔥 7. SEO & Performance Security
+✔ Prevent Bad Bots
+
+Allow only:
+
+Google bot
+
+Bing bot
+
+Yandex bot (optional)
+
+Block rest.
+
+✔ Robots.txt
+
+Disallow private URLs
+Disallow admin panel scanning
+
+🔥 8. Admin Panel Security
+
+Admin panel is highest attack target.
+
+✔ Secure admin login:
+
+IP allow-list
+
+CAPTCHA
+
+Brute-force protection
+
+Device verification
+
+Email OTP for critical actions (optional)
+
+✔ Log every admin activity:
+
+News added
+
+News edited
+
+Login attempts
+
+News deletion
+
+Password change
+
+🔥 9. API Security
+✔ Token required for:
+
+Writing news
+
+Editing news
+
+Deleting news
+
+✔ Public API (For readers)
+
+Rate limited:
+
+Latest news
+
+Trending news
+
+Search news API
+
+🔥 10. Comment Section Security
+
+Comments are high-risk areas.
+
+✔ Prevent:
+
+Spam
+
+Bots
+
+XSS
+
+Link injection
+
+Hate speech (optional filters)
+
+✔ Use:
+
+CAPTCHA
+
+Rate limiting
+
+IP tracking
+
+Spam word filters
+
+Auto block on abuse
+
+🔥 11. Session & Token Security
+✔ Use:
+
+HttpOnly cookies
+
+SameSite=strict
+
+Rotate tokens
+
+Short expiry for login tokens
+
+🔥 12. Server & Network Security
+✔ SSL/TLS 1.2+
+
+Force HTTPS.
+
+✔ WAF (Highly recommended)
+
+Cloudflare / AWS WAF to stop:
+
+DDoS
+
+SQL Injection
+
+XSS
+
+Bot attacks
+
+✔ Database Firewall
+
+Block:
+
+Unknown connections
+
+Dangerous SQL patterns
+
+🔥 13. Logging & Monitoring
+✔ Log:
+
+IP attacks
+
+DDoS attempts
+
+Admin actions
+
+User login failures
+
+Comment spam IPs
+
+✔ Use:
+
+ELK
+
+Prometheus
+
+Grafana
+
+🔥 14. Backup & Disaster Recovery
+
+Daily encrypted DB backups:
+
+News content
+
+Images
+
+Comments
+
+User data
+
+Automatically restore on corruption.
+
+🔥 15. Final Security Checklist for News Websites
+🔹 Must-have:
+
+✔ Authentication
+✔ Authorization
+✔ XSS protection
+✔ SQL injection protection
+✔ Rate limiting
+✔ IP blocking
+✔ DDoS protection
+✔ Admin panel security
+✔ Image upload security
+✔ HTTPS
+
+🔹 Highly recommended:
+
+✔ Anti-scraping system
+✔ Bot filtering
+✔ Activity logging
+✔ CAPTCHA security
+✔ Comment spam filter
+✔ Token security
+
+🔹 Optional (advanced):
+
+✔ Geo-blocking
+✔ Device fingerprinting
+✔ Honeypot bots
+
+💬 Want Code Implementation?
+
+If you want, I can give you:
+
+✔ Full Spring Boot security code (Production-grade)
+✔ IP-based block code
+✔ Anti-scraping middleware
+✔ Comment anti-spam system
+✔ Admin panel protection
+✔ Secure file upload code
+✔ Database schema for users, roles, news, logs

@@ -1,0 +1,153 @@
+🛡️ Security Headers (Browser Hardening) Kya Hote Hain?
+
+Browser hardening = aap browser ko rules dete ho:
+
+Kis origin se scripts load kar sakte hain
+
+Browser ko iframe allow karna chahiye ya nahi
+
+Clickjacking rokna hai ya nahi
+
+XSS attack rokna hai ya nahi
+
+Cookies kaise behave karengi
+
+HSTS force karna ya nahi
+
+Ye sab HTTP response headers se hota hai.
+
+🔥 Why Security Headers are Important?
+Attack	Header Protection
+XSS	CSP, X-XSS-Protection
+Clickjacking	X-Frame-Options
+CSRF attacks	SameSite cookie
+Man-in-the-middle	HSTS
+MIME sniffing	X-Content-Type-Options
+Dangerous inline scripts	CSP
+
+
+
+
+========================================================================================================================================================= = =
+1️⃣ Content-Security-Policy (CSP)
+
+🔒 XSS, Script injection ko rokta hai.
+
+Example:
+
+Content-Security-Policy: default-src 'self'
+
+
+Matlab:
+
+Only same server se scripts/images/css allow
+
+Strong CSP example:
+
+Content-Security-Policy: default-src 'self'; script-src 'self'; object-src 'none';
+
+2️⃣ X-Frame-Options
+
+🔒 Clickjacking rokta hai.
+
+X-Frame-Options: DENY
+
+
+Meaning → koi bhi external site aapko iframe nahi kar sakti.
+
+3️⃣ Strict-Transport-Security (HSTS)
+
+🔒 HTTP → HTTPS force karta hai.
+Man-in-the-middle attack ko rokta hai.
+
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+
+4️⃣ X-Content-Type-Options
+
+🔒 MIME sniffing attack ko block karta hai.
+
+X-Content-Type-Options: nosniff
+
+5️⃣ Referrer-Policy
+
+🔒 User’s browsing path leak hone se rokta hai.
+
+Referrer-Policy: no-referrer
+
+6️⃣ Permissions-Policy
+
+Browser features control karta hai:
+
+Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+
+Meaning:
+
+Camera → disable
+
+Mic → disable
+
+Geolocation → disable
+
+🧩 Spring Boot me Security Headers kaise enable kare?
+✔ Method 1: Spring Security DSL (Recommended)
+@Bean
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+        .headers(headers -> headers
+                .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'"))
+                .frameOptions(frame -> frame.deny())
+                .xssProtection(xss -> xss.block(true))
+                .httpStrictTransportSecurity(hsts -> hsts
+                        .includeSubDomains(true)
+                        .maxAgeInSeconds(31536000))
+                .contentTypeOptions(withDefaults())
+                .referrerPolicy(ref -> ref.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
+                .permissionsPolicy(perm -> perm.policy("camera=(), microphone=(), geolocation=()"))
+        );
+
+    return http.build();
+}
+
+✔ Ye kya enable karta hai?
+Header	Protection
+CSP	XSS block
+X-Frame-Options DENY	Clickjacking block
+XSS Protection	Old browsers ke liye fallback
+HSTS	force HTTPS
+NoSniff	MIME sniffing block
+No-Referrer	privacy
+Permissions-Policy	browser features control
+🧪 Testing Security Headers
+
+Tools:
+
+Chrome DevTools → Network → Response Headers
+
+Security Headers Checker (online)
+
+curl commands:
+
+curl -I https://your-domain.com
+
+🧰 Ready Security Header Package (copy–paste)
+http.headers(headers -> headers
+        .contentSecurityPolicy(c -> c.policyDirectives("default-src 'self'; script-src 'self'"))
+        .frameOptions(frame -> frame.deny())
+        .xssProtection(xss -> xss.block(true))
+        .httpStrictTransportSecurity(hsts -> hsts.maxAgeInSeconds(31536000).includeSubDomains(true))
+        .contentTypeOptions(withDefaults())
+        .referrerPolicy(r -> r.policy(ReferrerPolicy.NO_REFERRER))
+        .permissionsPolicy(p -> p.policy("geolocation=(), camera=(), microphone=()"))
+);
+
+🎯 FINAL SUMMARY
+
+Security Headers = Browser ko secure mode me chalane ke rules
+
+✔ XSS → CSP
+✔ Clickjacking → X-Frame-Options
+✔ HTTPS Only → HSTS
+✔ MIME sniffing → NoSniff
+✔ Referrer privacy → Referrer-Policy
+✔ Browser features block → Permissions-Policy

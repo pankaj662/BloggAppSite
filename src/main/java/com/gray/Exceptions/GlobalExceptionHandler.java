@@ -3,7 +3,6 @@ package com.gray.Exceptions;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hibernate.query.derived.AnonymousTupleSqmAssociationPathSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -107,5 +106,13 @@ public class GlobalExceptionHandler {
 		String message="File oprations failed"+getMessage;
 		ApiResponse apiResponse=new ApiResponse(message,false);
 		return new ResponseEntity<ApiResponse>(apiResponse,HttpStatus.NO_CONTENT);
+	}
+	
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<ApiResponse> illegalArgumentException(IllegalArgumentException e)
+	{
+		String message=e.getMessage();
+		ApiResponse  apiResponse=new ApiResponse(message,false);
+		return new ResponseEntity<ApiResponse>(apiResponse,HttpStatus.BAD_REQUEST);
 	}
 }

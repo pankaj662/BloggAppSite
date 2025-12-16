@@ -1,0 +1,43 @@
+CREATE TABLE IF NOT EXISTS 
+ User(
+	id INT PRIMARY KEY AUTO_INCREMENT,
+	user_name VARCHAR(255) NOT NULL,
+	user_email VARCHAR(255) NOT NULL UNIQUE,
+	user_password VARCHAR(255) NOT NULL,
+	user_about VARCHAR(500) NOT NULL,
+	
+	profile_image VARCHAR(255) NOT NULL,
+	
+    created_at DATETIME NOT NULL,
+    update_at DATETIME NOT NULL,
+    Last_Login DATETIME ,
+    Created_By VARCHAR(255) NOT NULL,
+    Upadte_By VARCHAR(255) NOT NULL,
+    User_Profile Boolean NOT NULL DEFAULT TRUE,
+    Temporary_Block DATETIME ,
+    Parmanent_block Boolean NOT NULL DEFAULT FALSE,
+    JwtToken_Version DOUBLE NOT NULL DEFAULT 1.09,
+    roles VARCHAR(50) NOT NULL 
+    
+ );
+ 
+CREATE TABLE IF NOT EXISTS
+Posts(
+	postId INT PRIMARY KEY AUTO_INCREMENT
+	Post_Title VARCHAR(255) NOT NULL,
+	Post_Content LONGTEXT NOT NULL,
+	PostImage VARCHAR(255) NOT NULL,
+	Date DATETIME NOT NULL,
+	CategorieId INT NOT NULL,
+	UserId INT NOT NULL,
+	
+	
+	CONSTRAINT fk_Posts_category FOREIGN KEY (CategorieId)
+	REFERENCES Categories(id)
+	ON DELETE CASCADE
+	
+	CONSTRAINT fk_Posts_User FOREIGN KEY (UserId)
+	REFERENCES User(id)
+	ON DELETE CASCADE
+	
+);

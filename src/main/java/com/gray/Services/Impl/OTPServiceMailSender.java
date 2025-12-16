@@ -54,8 +54,6 @@ public class OTPServiceMailSender
 		    throw new RuntimeException("Wait before requesting another OTP");
 		}
 		stringRedisTemplate.opsForValue().set(rateKey, "1", Duration.ofSeconds(60)); // 1 minute cooldown
-
-		
 		String key="otp:"+email;
 		stringRedisTemplate.opsForValue().set(key,otp,Duration.ofSeconds(expirySeconde));
 		
@@ -70,7 +68,6 @@ public class OTPServiceMailSender
         
 	}
 	
-	
 	//====== verify and remove OTP=======
 	public boolean verifyOTP(String email,String providedOtp)
 	{
@@ -83,8 +80,7 @@ public class OTPServiceMailSender
 		}
 		
 		boolean match=storedOtp.equals(providedOtp);
-		if(match)
-		{
+		if(match){
 			stringRedisTemplate.delete(key);
 		}
 		return match;
