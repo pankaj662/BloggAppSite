@@ -44,7 +44,7 @@ public class SecurityConfig {
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-		final String[] PUBLIC_URLS = { "/api/v1/veri-fied/blogg-app/public/auth/**", "/v3/api-docs",
+		final String[] PUBLIC_URLS = { "/api/v1/veri-fied/blogg-app/public/auth/**", "/v3/api-docs","/",
 				// "/api/v1/auth/newUser/Register",
 				"/swagger-ui/**", "/honeypot/**", "/v3/api-docs/swagger-config"
 
