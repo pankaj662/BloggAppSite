@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table
+@Table(name = "comment")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,14 +25,14 @@ public class Comment {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 	
-	@Column(nullable = false,name = "Comment_Content")
+	@Column(nullable = false,name = "comment_content")
 	private String content;
 	
 	@ManyToOne
-	@JoinColumn(name = "Post_Id",nullable = false)
+	@JoinColumn(name = "post_id",nullable = false)
 	private Post post;
 	
-	@JoinColumn(name = "User_Id",nullable = false)
+	@JoinColumn(name = "user_id",nullable = false)
 	@ManyToOne
 	private User user;
 	

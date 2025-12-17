@@ -28,9 +28,9 @@ public class Category {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 
-	@Column(name = "Title", nullable = false,unique = true)
+	@Column(name = "title", nullable = false,unique = true)
 	private String categorieTitle;
-	@Column(name = "Description", nullable = false)
+	@Column(name = "description", nullable = false)
 	private String categorieDescription;
 	
 	@OneToMany(mappedBy = "category", cascade = CascadeType.ALL,fetch = FetchType.LAZY)
