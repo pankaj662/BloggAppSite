@@ -1,5 +1,5 @@
-CREATE TABLE IF NOT EXISTS 
- User(
+CREATE TABLE 
+ Users(
 	id SERIAL PRIMARY KEY,
 	user_name VARCHAR(255) NOT NULL,
 	user_email VARCHAR(255) NOT NULL UNIQUE,
@@ -21,7 +21,14 @@ CREATE TABLE IF NOT EXISTS
     
  );
  
-CREATE TABLE IF NOT EXISTS
+ CREATE TABLE
+Categories(
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL UNIQUE,
+    description VARCHAR(1000) NOT NULL   	
+);
+ 
+CREATE TABLE
 Posts(
 	postId SERIAL PRIMARY KEY,
 	Post_Title VARCHAR(255) NOT NULL,
@@ -32,45 +39,38 @@ Posts(
 	UserId INT NOT NULL,
 	
 	
-	CONSTRAINT CategorieId 
+	CONSTRAINT fk_posts_categoreis
 	FOREIGN KEY (CategorieId)
-	REFERENCES "Categories"(id)
+	REFERENCES Categories(id)
 	ON DELETE CASCADE,
 	
-	CONSTRAINT UserId 
+	CONSTRAINT fk_posts_user
 	FOREIGN KEY (UserId)
-	REFERENCES "User"(id)
+	REFERENCES Users(id)
 	ON DELETE CASCADE
 	
 );
 
-CREATE TABLE IF NOT EXISTS
-Categories(
-    id SERIAL PRIMARY KEY,
-    title VARCHAR(255) NOT NULL UNIQUE,
-    description VARCHAR(1000) NOT NULL,    	
-);
-
-CREATE TABLE IF NOT EXISTS
+CREATE TABLE
 comment(
 	id SERIAL PRIMARY KEY,
-	comment_content VARCHAR(1000) NOT NULL
+	comment_content VARCHAR(1000) NOT NULL,
 	post_id INT NOT NULL,
 	user_id INT NOT NULL,
 	
 	CONSTRAINT fk_comment_postId
 	FOREIGN KEY (post_id)
-	REFERENCES "Posts"(postId)
+	REFERENCES Posts(postId)
 	ON DELETE CASCADE,
 	
 	CONSTRAINT fk_comment_userId
 	FOREIGN KEY (user_id)
-	REFERENCES "User"(id)
+	REFERENCES Users(id)
 	ON DELETE CASCADE	
 );
 
 
-CREATE TABLE IF NOT EXISTS
+CREATE TABLE
 Delay(
     id SERIAL PRIMARY KEY,
     userId INT ,
@@ -81,7 +81,7 @@ Delay(
 
 
 
-CREATE TABLE IF NOT EXISTS 
+CREATE TABLE
 ip (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
@@ -101,11 +101,11 @@ ip (
 -- Indexes (Performance)
 -- ===============================
 
-CREATE INDEX IF NOT EXISTS idx_ip_user_id
+CREATE INDEX  idx_ip_user_id
 ON ip (user_id);
-CREATE INDEX IF NOT EXISTS idx_ip_address
+CREATE INDEX  idx_ip_address
 ON ip (ip_address);
-CREATE INDEX IF NOT EXISTS idx_ip_blocked
+CREATE INDEX  idx_ip_blocked
 ON ip (permanently_blocked);
 
 -- ===============================
