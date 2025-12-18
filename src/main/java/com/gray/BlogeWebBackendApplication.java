@@ -33,6 +33,11 @@ public class BlogeWebBackendApplication //implements CommandLineRunner
 		System.setProperty("JWT_SECRET", dotenv.get("JWT_SECRET"));
 		System.setProperty("REFRESH_SECRET", dotenv.get("REFRESH_SECRET"));
 		System.setProperty("DB_PASSWORD", dotenv.get("DB_PASSWORD"));
+		System.setProperty("DB_URL", dotenv.get("DB_URL"));
+		System.setProperty("DB_USERNAME", dotenv.get("DB_USERNAME"));
+		//System.setProperty("DB_PASSWORD", null);
+		System.setProperty("GMAIL_NAME", dotenv.get("GMAIL_NAME"));
+		System.setProperty("GMAIL_PASSWORD", dotenv.get("GMAIL_PASSWORD"));
 		
 		SpringApplication.run(BlogeWebBackendApplication.class, args);
 	}
