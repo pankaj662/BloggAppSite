@@ -1,5 +1,5 @@
 CREATE TABLE 
- Users(
+ users(
 	id SERIAL PRIMARY KEY,
 	user_name VARCHAR(255) NOT NULL,
 	user_email VARCHAR(255) NOT NULL UNIQUE,
@@ -22,14 +22,14 @@ CREATE TABLE
  );
  
  CREATE TABLE
-Categories(
+categories(
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL UNIQUE,
     description VARCHAR(1000) NOT NULL   	
 );
  
 CREATE TABLE
-Posts(
+posts(
 	postId SERIAL PRIMARY KEY,
 	Post_Title VARCHAR(255) NOT NULL,
 	Post_Content TEXT NOT NULL,
@@ -71,7 +71,7 @@ comment(
 
 
 CREATE TABLE
-Delay(
+delay(
     id SERIAL PRIMARY KEY,
     userId INT ,
     attempCount INT,
@@ -141,7 +141,8 @@ EXECUTE FUNCTION prevent_immutable_ip_update();
 -- Database: PostgreSQL
 -- ======================================
 
-CREATE TABLE IF NOT EXISTS refreshtoken (
+CREATE TABLE 
+ refreshtoken (
     id BIGSERIAL PRIMARY KEY,
 
     user_id BIGINT NOT NULL,
